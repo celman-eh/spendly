@@ -1,6 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Trash2, Plus, TrendingUp, TrendingDown, Wallet } from "lucide-react";
 
 type Transaction = {
   id: string;
@@ -23,27 +37,22 @@ export default function Home() {
   const [type, setType] = useState<"income" | "expense">("expense");
   const [category, setCategory] = useState("Food");
 
-  // Load from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("spendly-transactions");
-    if (saved) {
-      setTransactions(JSON.parse(saved));
-    }
+    if (saved) setTransactions(JSON.parse(saved));
   }, []);
 
-  // Save to localStorage
   useEffect(() => {
     localStorage.setItem("spendly-transactions", JSON.stringify(transactions));
   }, [transactions]);
 
-  const balance = transactions.reduce((acc, t) => {
-    return t.type === "income" ? acc + t.amount : acc - t.amount;
-  }, 0);
-
+  const balance = transactions.reduce(
+    (acc, t) => (t.type === "income" ? acc + t.amount : acc - t.amount),
+    0
+  );
   const income = transactions
     .filter((t) => t.type === "income")
     .reduce((acc, t) => acc + t.amount, 0);
-
   const expense = transactions
     .filter((t) => t.type === "expense")
     .reduce((acc, t) => acc + t.amount, 0);
@@ -71,136 +80,170 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <div className="max-w-2xl mx-auto px-4 py-10">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
         {/* Header */}
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold tracking-tight">Spendly</h1>
-          <p className="text-gray-400 mt-2">Simple expense tracker that actually works</p>
+          <p className="text-muted-foreground mt-2">
+            Simple & beautiful expense tracker
+          </p>
         </div>
 
-        {/* Balance Cards */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-gray-900 rounded-2xl p-5 text-center border border-gray-800">
-            <p className="text-sm text-gray-400">Balance</p>
-            <p className={`text-2xl font-bold mt-1 ${balance >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-              ${balance.toFixed(2)}
-            </p>
-          </div>
-          <div className="bg-gray-900 rounded-2xl p-5 text-center border border-gray-800">
-            <p className="text-sm text-gray-400">Income</p>
-            <p className="text-2xl font-bold mt-1 text-emerald-400">+${income.toFixed(2)}</p>
-          </div>
-          <div className="bg-gray-900 rounded-2xl p-5 text-center border border-gray-800">
-            <p className="text-sm text-gray-400">Expenses</p>
-            <p className="text-2xl font-bold mt-1 text-red-400">-${expense.toFixed(2)}</p>
-          </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Balance</CardTitle>
+              <Wallet className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div
+                className={`text-2xl font-bold ${balance >= 0 ? "text-emerald-600" : "text-red-600"
+                  }`}
+              >
+                ${balance.toFixed(2)}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Income</CardTitle>
+              <TrendingUp className="h-4 w-4 text-emerald-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-600">
+                +${income.toFixed(2)}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Expenses</CardTitle>
+              <TrendingDown className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                -${expense.toFixed(2)}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Add Transaction Form */}
-        <form onSubmit={handleSubmit} className="bg-gray-900 rounded-2xl p-6 mb-8 border border-gray-800">
-          <div className="flex gap-3 mb-4">
-            <button
-              type="button"
-              onClick={() => {
-                setType("expense");
-                setCategory("Food");
-              }}
-              className={`flex-1 py-2 rounded-lg font-medium transition ${type === "expense" ? "bg-red-500 text-white" : "bg-gray-800 text-gray-400"
-                }`}
-            >
-              Expense
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setType("income");
-                setCategory("Salary");
-              }}
-              className={`flex-1 py-2 rounded-lg font-medium transition ${type === "income" ? "bg-emerald-500 text-white" : "bg-gray-800 text-gray-400"
-                }`}
-            >
-              Income
-            </button>
-          </div>
+        {/* Add Transaction */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-lg">Add Transaction</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Tabs
+                value={type}
+                onValueChange={(value) => {
+                  setType(value as "income" | "expense");
+                  setCategory(value === "income" ? "Salary" : "Food");
+                }}
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="expense">Expense</TabsTrigger>
+                  <TabsTrigger value="income">Income</TabsTrigger>
+                </TabsList>
+              </Tabs>
 
-          <div className="space-y-3">
-            <input
-              type="text"
-              placeholder="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
+              <Input
+                placeholder="Description (e.g. Groceries, Salary...)"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+              />
 
-            <input
-              type="number"
-              placeholder="Amount"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              step="0.01"
-              min="0"
-              required
-            />
+              <Input
+                type="number"
+                placeholder="Amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                step="0.01"
+                min="0"
+                required
+              />
 
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {CATEGORIES[type].map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+              <Select
+                value={category}
+                onValueChange={(value) => {
+                  if (value) setCategory(value);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES[type].map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-lg transition"
-            >
-              Add Transaction
-            </button>
-          </div>
-        </form>
+              <Button type="submit" className="w-full" size="lg">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Transaction
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
 
         {/* Transaction List */}
-        <div className="space-y-3">
-          <h2 className="text-xl font-semibold mb-4">Recent Transactions</h2>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Recent Transactions</h2>
+            <Badge variant="secondary">{transactions.length} total</Badge>
+          </div>
+
+          <Separator />
 
           {transactions.length === 0 ? (
-            <p className="text-gray-500 text-center py-10">No transactions yet. Add your first one!</p>
+            <div className="text-center py-16 text-muted-foreground">
+              <p>No transactions yet.</p>
+              <p className="text-sm mt-1">Add your first one above!</p>
+            </div>
           ) : (
-            transactions.map((t) => (
-              <div
-                key={t.id}
-                className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center justify-between"
-              >
-                <div>
-                  <p className="font-medium">{t.description}</p>
-                  <p className="text-sm text-gray-400">
-                    {t.category} • {t.date}
-                  </p>
-                </div>
+              <div className="space-y-3">
+                {transactions.map((t) => (
+                  <Card key={t.id} className="hover:bg-muted/50 transition-colors">
+                    <CardContent className="flex items-center justify-between p-4">
+                      <div className="space-y-1">
+                        <p className="font-medium leading-none">{t.description}</p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Badge variant="outline" className="text-xs font-normal">
+                            {t.category}
+                          </Badge>
+                          <span>{t.date}</span>
+                        </div>
+                      </div>
 
-                <div className="flex items-center gap-4">
-                  <span
-                    className={`font-semibold ${t.type === "income" ? "text-emerald-400" : "text-red-400"
-                      }`}
-                  >
-                    {t.type === "income" ? "+" : "-"}${t.amount.toFixed(2)}
-                  </span>
-                  <button
-                    onClick={() => deleteTransaction(t.id)}
-                    className="text-gray-500 hover:text-red-400 transition text-sm"
-                  >
-                    Delete
-                  </button>
-                </div>
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={`font-semibold ${t.type === "income" ? "text-emerald-600" : "text-red-600"
+                            }`}
+                        >
+                          {t.type === "income" ? "+" : "-"}${t.amount.toFixed(2)}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteTransaction(t.id)}
+                          className="text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            ))
           )}
         </div>
       </div>
