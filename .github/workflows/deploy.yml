@@ -2,7 +2,7 @@ name: Deploy to Vercel + Discord Notify
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   workflow_dispatch:
 
 env:
@@ -13,15 +13,21 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
       - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+        run: npm install -g vercel@latest
 
-      - name: Pull Vercel Environment
+      - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Build Project
+      - name: Build Project Artifacts
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to Vercel
@@ -29,21 +35,24 @@ jobs:
         run: |
           url=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$url" >> $GITHUB_OUTPUT
+          echo "Deployed to: $url"
 
       - name: Notify Discord (Success)
         if: success()
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          curl -H "Content-Type: application/json" -X POST -d "{
-            \"content\": \"✅ **Spendly deployed successfully!**\n**Live URL:** ${{ steps.deploy.outputs.url }}\n**Commit:** ${{ github.sha }}\"
-          }" $DISCORD_WEBHOOK
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d "{\"content\": \"✅ **Spendly deployed successfully!**\\n**Live URL:** ${{ steps.deploy.outputs.url }}\\n**Commit:** ${{ github.sha }}\\n**Author:** ${{ github.actor }}\"}" \
+          $DISCORD_WEBHOOK
 
       - name: Notify Discord (Failure)
         if: failure()
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          curl -H "Content-Type: application/json" -X POST -d "{
-            \"content\": \"❌ **Spendly deployment failed!** Check Actions logs.\"
-          }" $DISCORD_WEBHOOK
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d "{\"content\": \"❌ **Spendly deployment failed!**\\nCheck the Actions tab for logs.\\n**Commit:** ${{ github.sha }}\"}" \
+          $DISCORD_WEBHOOK
